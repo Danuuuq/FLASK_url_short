@@ -12,9 +12,9 @@
         <div class="col-sm">
         </div>
         <div class="col-sm">
-            <div>
-              <form method="POST" novalidate>
-                {{ form.csrf_token }}
+          <form method="POST" novalidate>
+            {{ form.csrf_token }}
+              <div>
                 <div>
                   {{ form.original_link(class="form-control form-control-lg py-2 mb-3", placeholder=form.original_link.label.text) }}
                   {% if form.original_link.errors %}
@@ -39,9 +39,9 @@
                     </p>
                   {% endif %}
                 </div>
-                {{ form.submit(class="btn btn-primary") }}
-              </form>
+              {{ form.submit(class="btn btn-primary") }}
             </div>
+          </form>
         </div>
         <div class="col-sm">
         </div>
