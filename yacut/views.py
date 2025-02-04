@@ -1,4 +1,4 @@
-from flask import abort, render_template, redirect, url_for, flash, request
+from flask import abort, flash, redirect, render_template, request
 
 from . import app, db
 from .models import URLMap

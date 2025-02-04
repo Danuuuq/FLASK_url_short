@@ -3,35 +3,24 @@ from flask import jsonify, request
 from . import app, db
 from .error_handlers import InvalidAPIUsage
 from .models import URLMap
-from .utils import get_unique_short_id
-from .validators import validation_custom_id, validation_original_url
+from .validators import ValidateAPIRequest
 
 
 @app.route('/api/id/', methods=['POST'])
 def create_short_url():
     data = request.get_json(silent=True)
-    if data is None:
+    if not data:
         raise InvalidAPIUsage('Отсутствует тело запроса')
-    if 'url' not in data:
-        raise InvalidAPIUsage('\"url\" является обязательным полем!')
-    if 'custom_id' not in data:
-        data['custom_id'] = get_unique_short_id(data['url'])
-    not_valid_custom_id = validation_custom_id(data['custom_id'])
-    if not_valid_custom_id:
-        raise InvalidAPIUsage(not_valid_custom_id)
-    not_valid_original_url = validation_original_url(data['url'])
-    if not_valid_original_url:
-        raise InvalidAPIUsage(not_valid_original_url)
-    url = URLMap(
-        original=data['url'],
-        short=data['custom_id']
-    )
-    db.session.add(url)
-    db.session.commit()
-    return jsonify({
-        'url': data['url'],
-        'short_link': request.url.split('api')[0] + data['custom_id']
-    }), 201
+    data = ValidateAPIRequest(data)
+    if data.valid_data():
+        url_obj = URLMap(
+            original=data.original_url,
+            short=data.short_url
+        )
+        db.session.add(url_obj)
+        db.session.commit()
+        return jsonify(url_obj.to_dict()), 201
+    raise InvalidAPIUsage(data.error)
 
 
 @app.route('/api/id/<short_url>/', methods=['GET'])

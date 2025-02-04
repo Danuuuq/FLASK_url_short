@@ -1,8 +1,8 @@
 from flask import request
 from flask_wtf import FlaskForm
-from wtforms import StringField, URLField, SubmitField
+from wtforms import StringField, SubmitField, URLField
 from wtforms.validators import (
-    DataRequired, Length, Optional, URL, ValidationError, Regexp
+    DataRequired, Length, Optional, Regexp, URL, ValidationError
 )
 
 from .models import URLMap
@@ -14,7 +14,7 @@ class URLForm(FlaskForm):
         validators=[
             DataRequired(message='Обязательное поле'),
             Length(1, 256),
-            URL(message='Указанна неккоректная ссылка')]
+            URL(message='Указанна некорректная ссылка')]
     )
     custom_id = StringField(
         'Ваш вариант короткой ссылки',
@@ -27,8 +27,8 @@ class URLForm(FlaskForm):
     submit = SubmitField('Создать')
 
     def validate_original_link(form, field):
-        if URLMap.query.filter_by(original=field.data).first() is not None:
-            url = URLMap.query.filter_by(original=field.data).first()
+        url = URLMap.query.filter_by(original=field.data).first()
+        if url:
             raise ValidationError(
                 f'Ссылка уже была создана: {request.url + url.short}'
             )

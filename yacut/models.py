@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+from flask import request
+
 from . import db
 
 
@@ -9,3 +11,9 @@ class URLMap(db.Model):
     short = db.Column(db.String(16), unique=True, nullable=False)
     timestamp = db.Column(db.DateTime, index=True,
                           default=datetime.now(timezone.utc))
+
+    def to_dict(self):
+        return dict(
+            url=self.original,
+            short_link=request.url.split('api')[0] + self.short
+        )
