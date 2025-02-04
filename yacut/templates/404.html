@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+  <section class="container my-5 px-4">
+    <h1 class="text-center">Страницы не существует.</h1>
+    <p class="text-center my-4">
+      По данной ссылке вы ничего не нашли и не найдете.<br>
+      <a href="{{ url_for('create_short_url_view') }}">Создать ссылку.</a>
+    </p>
+  </section>
+</main>
+{% endblock %}

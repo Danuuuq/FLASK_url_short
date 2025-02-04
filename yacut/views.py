@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import abort, render_template, redirect, url_for, flash, request
 
 from . import app, db
 from .models import URLMap
@@ -11,10 +11,10 @@ def create_short_url_view():
     form = URLForm()
     if form.validate_on_submit():
         custom_id = form.custom_id.data
-        if len(custom_id) == 0:
+        if not custom_id:
             custom_id = get_unique_short_id(form.original_link.data)
         url = URLMap(
-            origin=form.original_link.data,
+            original=form.original_link.data,
             short=custom_id
         )
         db.session.add(url)
@@ -27,4 +27,6 @@ def create_short_url_view():
 @app.route('/<short_url>')
 def redirect_views(short_url):
     url = URLMap.query.filter_by(short=short_url).first()
-    return redirect(url.origin)
+    if not url:
+        abort(404)
+    return redirect(url.original)

@@ -27,9 +27,8 @@ class URLForm(FlaskForm):
     submit = SubmitField('Создать')
 
     def validate_original_link(form, field):
-        if URLMap.query.filter_by(origin=field.data).first() is not None:
-            breakpoint()
-            url = URLMap.query.filter_by(origin=field.data).first()
+        if URLMap.query.filter_by(original=field.data).first() is not None:
+            url = URLMap.query.filter_by(original=field.data).first()
             raise ValidationError(
                 f'Ссылка уже была создана: {request.url + url.short}'
             )

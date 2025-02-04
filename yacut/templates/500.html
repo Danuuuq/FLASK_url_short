@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<main>
+  <section class="container my-5 px-4">
+    <h1 class="text-center">На сервере ошибка.</h1>
+    <p class="text-center my-4">
+      У нас что-то сломалось, но вы попробуйте еще раз.<br>
+      <a href="{{ url_for('create_short_url_view') }}">Создать ссылку.</a>
+    </p>
+  </section>
+</main>
+{% endblock %}
