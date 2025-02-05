@@ -1,24 +1,18 @@
 from flask import abort, flash, redirect, render_template, request
 
-from . import app, db
+from . import app
 from .models import URLMap
 from .forms import URLForm
-from .utils import get_unique_short_id
 
 
 @app.route('/', methods=['GET', 'POST'])
 def create_short_url_view():
     form = URLForm()
     if form.validate_on_submit():
-        custom_id = form.custom_id.data
-        if not custom_id:
-            custom_id = get_unique_short_id(form.original_link.data)
-        url = URLMap(
-            original=form.original_link.data,
-            short=custom_id
-        )
-        db.session.add(url)
-        db.session.commit()
+        try:
+            url = URLMap.create_object(form.data)
+        except ValueError:
+            abort(500)
         flash('Ваша новая ссылка готова:', request.url + url.short)
         return render_template('index.html', form=form)
     return render_template('index.html', form=form)
@@ -26,7 +20,5 @@ def create_short_url_view():
 
 @app.route('/<short_url>')
 def redirect_views(short_url):
-    url = URLMap.query.filter_by(short=short_url).first()
-    if not url:
-        abort(404)
+    url = URLMap.query.filter_by(short=short_url).first_or_404()
     return redirect(url.original)

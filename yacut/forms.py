@@ -5,6 +5,10 @@ from wtforms.validators import (
     DataRequired, Length, Optional, Regexp, URL, ValidationError
 )
 
+from .constants import (
+    MAX_LENGTH_CUSTOM_ID, MAX_LENGTH_ORIGINAL_URL,
+    MIN_LENGTH_FIELDS, REGEX_FOR_CUSTOM_ID
+)
 from .models import URLMap
 
 
@@ -13,28 +17,29 @@ class URLForm(FlaskForm):
         'Длинная ссылка',
         validators=[
             DataRequired(message='Обязательное поле'),
-            Length(1, 256),
+            Length(MIN_LENGTH_FIELDS, MAX_LENGTH_ORIGINAL_URL),
             URL(message='Указанна некорректная ссылка')]
     )
     custom_id = StringField(
         'Ваш вариант короткой ссылки',
         validators=[
-            Length(1, 16, 'Максимальная длина 16 символов'),
+            Length(MIN_LENGTH_FIELDS, MAX_LENGTH_CUSTOM_ID,
+                   f'Максимальная длина {MAX_LENGTH_CUSTOM_ID} символов'),
             Optional(),
-            Regexp('^[A-Za-z0-9]*$',
+            Regexp(REGEX_FOR_CUSTOM_ID,
                    message='Допустимы только символы латиницы и цифры')]
     )
     submit = SubmitField('Создать')
 
-    def validate_original_link(form, field):
-        url = URLMap.query.filter_by(original=field.data).first()
-        if url:
-            raise ValidationError(
-                f'Ссылка уже была создана: {request.url + url.short}'
-            )
+    # def validate_original_link(form, field):
+    #     url = URLMap.get_object(original=field.data)
+    #     if url:
+    #         raise ValidationError(
+    #             f'Ссылка уже была создана: {request.url + url.short}'
+    #         )
 
     def validate_custom_id(form, field):
-        if URLMap.query.filter_by(short=field.data).first() is not None:
+        if URLMap.get_object(short=field.data):
             raise ValidationError(
                 'Предложенный вариант короткой ссылки уже существует.'
             )
