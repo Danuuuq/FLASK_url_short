@@ -31,12 +31,12 @@ class URLForm(FlaskForm):
     )
     submit = SubmitField('Создать')
 
-    # def validate_original_link(form, field):
-    #     url = URLMap.get_object(original=field.data)
-    #     if url:
-    #         raise ValidationError(
-    #             f'Ссылка уже была создана: {request.url + url.short}'
-    #         )
+    def validate_original_link(form, field):
+        url = URLMap.get_object(original=field.data)
+        if url:
+            raise ValidationError(
+                f'Ссылка уже была создана: {request.url + url.short}'
+            )
 
     def validate_custom_id(form, field):
         if URLMap.get_object(short=field.data):

@@ -1,8 +1,8 @@
 from flask import abort, flash, redirect, render_template, request
 
 from . import app
-from .models import URLMap
 from .forms import URLForm
+from .models import URLMap
 
 
 @app.route('/', methods=['GET', 'POST'])
