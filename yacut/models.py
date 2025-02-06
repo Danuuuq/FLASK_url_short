@@ -9,6 +9,7 @@ from . import db
 from .constants import (
     MAX_LENGTH_CUSTOM_ID, REGEX_FOR_CUSTOM_ID, REGEX_FOR_URL
 )
+from .exceptions import IncorrectFormatData, NotUniqueData
 
 
 class URLMap(db.Model):
@@ -20,6 +21,7 @@ class URLMap(db.Model):
                           default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
+        """Возвращение словаря с данными объекта."""
         return dict(
             url=self.original,
             short_link=url_for('redirect_views',
@@ -28,32 +30,60 @@ class URLMap(db.Model):
 
     @classmethod
     def get_object(cls, **kwargs):
+        """Возвращение объекта из базы данных по заданным параметрам.
+
+        Ключевые аргументы:
+        **kwargs -- параметры для фильтрации
+        """
         return cls.query.filter_by(**kwargs).first()
 
     @staticmethod
     def validate_original_url(original_url):
+        """Проверка корректности введенной ссылки.
+
+        Ключевые аргументы:
+        original_url -- исходная ссылка
+        """
         if re.fullmatch(REGEX_FOR_URL, original_url) is None:
-            raise ValueError('Некорректный формат ссылки')
+            raise IncorrectFormatData('Некорректный формат ссылки')
+        elif URLMap.get_object(original=original_url):
+            raise NotUniqueData('Ссылка уже была создана ранее:')
+
+    @staticmethod
+    def validate_custom_id(original_url, custom_id):
+        """Проверка корректности введенного идентификатора.
+
+        Ключевые аргументы:
+        original_url -- исходная ссылка
+        custom_id -- короткий идентификатор
+        """
+        if not custom_id:
+            return URLMap.get_unique_short_id(original_url)
+        elif (
+            len(custom_id) > MAX_LENGTH_CUSTOM_ID or
+            re.fullmatch(REGEX_FOR_CUSTOM_ID, custom_id) is None
+        ):
+            raise IncorrectFormatData(
+                'Указано недопустимое имя для короткой ссылки')
+        elif URLMap.get_object(short=custom_id):
+            raise NotUniqueData(
+                'Предложенный вариант короткой ссылки уже существует.')
+        return custom_id
 
     @staticmethod
     def create_object(data):
+        """Создание объект URLMap и сохранение его в базе данных.
+
+        Ключевые аргументы:
+        data -- данные для создания объекта"""
+        original_url = data.get('url') or data.get('original_link')
+        custom_id = URLMap.validate_custom_id(
+            original_url, data.get('custom_id'))
         URLMap.validate_original_url(
-            data.get('url') or data.get('original_link'))
-        if not data.get('custom_id'):
-            data['custom_id'] = URLMap.get_unique_short_id(
-                data.get('url') or data.get('original_link'))
-        elif (
-            len(data['custom_id']) > MAX_LENGTH_CUSTOM_ID or
-            re.fullmatch(REGEX_FOR_CUSTOM_ID, data['custom_id']) is None
-        ):
-            raise ValueError(
-                'Указано недопустимое имя для короткой ссылки')
-        elif URLMap.get_object(short=data['custom_id']):
-            raise ValueError(
-                'Предложенный вариант короткой ссылки уже существует.')
+            original_url)
         url = URLMap(
-            original=data.get('url') or data.get('original_link'),
-            short=data['custom_id']
+            original=original_url,
+            short=custom_id
         )
         try:
             db.session.add(url)
@@ -65,6 +95,11 @@ class URLMap(db.Model):
 
     @staticmethod
     def get_unique_short_id(original_url):
+        """Генерирует уникальный короткий идентификатор для ссылки.
+
+        Ключевые аргументы:
+        original_url -- исходная ссылка
+        """
         length_short_url = current_app.config['LENGTH_SHORT_ID']
         url_bytes = original_url.encode('utf-8')
         short_url = hashlib.sha256(url_bytes).hexdigest()[:length_short_url]

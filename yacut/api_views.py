@@ -2,6 +2,7 @@ from flask import jsonify, request
 
 from . import app
 from .error_handlers import InvalidAPIUsage
+from .exceptions import IncorrectFormatData, NotUniqueData
 from .models import URLMap
 
 
@@ -14,7 +15,7 @@ def create_short_url():
         raise InvalidAPIUsage('\"url\" является обязательным полем!')
     try:
         url = URLMap.create_object(data)
-    except ValueError as error:
+    except (ValueError, NotUniqueData, IncorrectFormatData) as error:
         raise InvalidAPIUsage(str(error))
     return jsonify(url.to_dict()), 201
 

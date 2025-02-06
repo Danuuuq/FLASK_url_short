@@ -14,9 +14,11 @@
 
   <body>
     {% include "header.html" %}
-      <main>
+    <main>
+      <section class="container my-5 px-4">
         {% block content %}{% endblock content %}
-      </main>
+      </section>
+    </main>
     {% include "footer.html" %}
   </body>
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"

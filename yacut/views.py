@@ -1,6 +1,7 @@
-from flask import abort, flash, redirect, render_template, request
+from flask import flash, redirect, render_template
 
 from . import app
+from .exceptions import IncorrectFormatData, NotUniqueData
 from .models import URLMap
 from .forms import URLForm
 
@@ -11,9 +12,10 @@ def create_short_url_view():
     if form.validate_on_submit():
         try:
             url = URLMap.create_object(form.data)
-        except ValueError:
-            abort(500)
-        flash('Ваша новая ссылка готова:', request.url + url.short)
+        except (ValueError, IncorrectFormatData, NotUniqueData) as error:
+            flash(str(error), 'error')
+        else:
+            flash('Ваша новая ссылка готова:', url.to_dict()['short_link'])
         return render_template('index.html', form=form)
     return render_template('index.html', form=form)
 
