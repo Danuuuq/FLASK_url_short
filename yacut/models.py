@@ -24,8 +24,8 @@ class URLMap(db.Model):
         """Возвращение словаря с данными объекта."""
         return dict(
             url=self.original,
-            short_link=url_for('redirect_views',
-                               _external=True, short_url=self.short),
+            short_link=url_for(
+                'redirect_views', _external=True, short_url=self.short),
         )
 
     @classmethod

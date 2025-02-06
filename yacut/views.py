@@ -4,6 +4,7 @@ from . import app
 from .exceptions import IncorrectFormatData, NotUniqueData
 from .models import URLMap
 from .forms import URLForm
+from .models import URLMap
 
 
 @app.route('/', methods=['GET', 'POST'])
